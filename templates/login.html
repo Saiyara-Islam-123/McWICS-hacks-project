@@ -4,12 +4,12 @@
 
 {% block navbar %}
 <div class="Login-form">
-    <form class="form-group">
-        <input type="text" class="form-control" id="formGroupExampleInput" placeholder="username">
-        <input type="text" class="form-control" id="formGroupExampleInput2" placeholder="password">
-        <button type="submit" class="btn btn-primary">Login</button>
+    <form class="form-group" action="/login" method="post">
+        <input type="text" class="form-control" placeholder="username" name='username'>
+        <input type="text" class="form-control" placeholder="password" name='password'>
+        <button type="submit" class="btn btn-primary" name='login'>Login</button>
         <p> Not registered? </p>
-        <button type="submit" class="btn btn-primary">Create user</button>
+        <button type="submit" class="btn btn-primary"  name='create_user'>Create user</button>
     </form>
 </div>
 {% endblock %}
