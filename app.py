@@ -14,22 +14,7 @@ item_links = []
 @app.route('/mycart')
 def my_shopping_cart():
     return render_template('app.html', links=item_links)  
-
-# Adding links to wishlist page
-@app.route('/add-item', methods=['POST'])
-def add_item():
-    global item_links
-
-    item_link = request.json.get('link')
-    if item_link:
-        item_links.append({"link": item_link, "price": len(item_links) * 10}) 
-        print(f"Received link: {item_link}")
-
-        return jsonify({"status": "success", "itemLink": item_link})
-    else:
-        return jsonify({"status": "error", "message": "No link provided"}), 400
     
-
 # creating a database to store login credentials for users
 login_databasee = {'admin' : 'password'}
 
