@@ -1,6 +1,6 @@
 {% extends "bootstrap/base.html" %}
 
-{% block title %}My Wishlist{% endblock %}
+{% block title %}FortuneCart{% endblock %}
 
 {% block navbar %}
 <div class="navbar navbar-inverse" role="navigation">
@@ -14,7 +14,7 @@
             </button>
             <a class="navbar-brand" href="#">
                 <img src="https://via.placeholder.com/40" alt="Logo" style="display:inline; height:40px; margin-right:450px;">
-                NAME
+                FortuneCart
             </a>
         </div>
         <div class="navbar-collapse collapse">
@@ -28,5 +28,88 @@
 </div>
 {% endblock %}
 
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>My Wishlist</h1>
+    </div>
+    
+    <div class="row">
+      <div class="col-sm-3">
+        <div class="thumbnail text-center" style="padding:20px;">
+            <a href="#" data-toggle="modal" data-target="#addModal">
+              <button type="button" class="btn btn-primary">Add</button>
+            </a>
+        </div>
+    </div>
+      {% for link in links %}
+      <div class="col-sm-3">
+          <div class="thumbnail text-center" style="padding:20px;">
+              <img src="https://via.placeholder.com/200" alt="Image" style="width:100%; height:auto;">
+              <div class="caption">
+                  <p style="text-align:center;">Price: ${{ link.price }}</p>
+                  <p style="text-align:center;">Link: <a href="{{ link.link }}" target="_blank">{{ link.link }}</a></p>
+                  <div class="row text-center">
+                      <button class="btn btn-default ml-auto">
+                          <img src="https://banner2.cleanpng.com/20180426/jxq/avez1anz5.webp" alt="Icon" style="width:20px; height:20px; margin-right:5px;">
+                      </button>
+                  </div>
+              </div>
+          </div>
+      </div>
+      {% endfor %}
+  </div>  
+    <div style="position: fixed; bottom: 20px; right: 20px;">
+        <a href="https://example.com" target="_blank">
+            <img src="https://cdn-icons-png.flaticon.com/512/263/263142.png" alt="Icon" style="width:50px; height:50px;">
+        </a>
+    </div>
+</div>
 
+<div id="addModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="POST" action="/add-item">
+                <div class="modal-header">
+                    <h5 class="modal-title" style="text-align:center;">Add Items</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="itemLink">Enter Item Link:</label>
+                        <input type="url" class="form-control" id="itemLink" name="itemLink" placeholder="https://example.com" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="submitLink()">Submit</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
+<script>
+    function submitLink() {
+        const linkInput = document.getElementById('itemLink').value;
+        if (linkInput) {
+            console.log('User entered link:', linkInput); 
+            fetch('/add-item', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ link: linkInput })
+            })
+            .then(response => response.json())
+            .catch(error => console.error('Error submitting link:', error));
+
+            $('#addModal').modal('hide');
+        } else {
+            alert('Please enter a valid link!');
+        }
+    }
+</script>
+{% endblock %}
