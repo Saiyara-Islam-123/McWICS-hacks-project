@@ -1,7 +1,7 @@
 from sklearn.naive_bayes import MultinomialNB
 import numpy as np
 
-class NaiveBayes():
+class NaiveBayes:
     def __init__(self, X_train, y_train): #X_train: store, y_train: date
         self.X_train = X_train
         self.y_train = y_train
