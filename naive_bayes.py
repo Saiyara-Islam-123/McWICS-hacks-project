@@ -22,7 +22,7 @@ class NaiveBayes:
 
 
         for i in range(len(dates_flattened)):
-            if abs(today - min) > abs (today - dates_flattened[i]):
+            if abs(today - min) > abs (today - dates_flattened[i]) and dates_flattened[i] > today :
 
                 min = dates_flattened[i]
                 prob = probs_flattened[i]
