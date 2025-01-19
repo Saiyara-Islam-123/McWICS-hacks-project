@@ -33,4 +33,4 @@ def get_pred_and_prob(store, today_date):
     date, prob =  model.find_nearest_pred_sale_date_and_prob(np.array([[encode.encode_store(store)]]), today)
     return decode_date(date), prob
 
-print(get_pred_and_prob("Zara", "7/9"))
+#print(get_pred_and_prob("Zara", "7/9"))
