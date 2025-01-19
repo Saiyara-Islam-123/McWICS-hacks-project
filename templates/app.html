@@ -13,7 +13,7 @@
                 <span class="icon-bar"></span>
             </button>
             <a class="navbar-brand" href="#">
-                <img src="https://via.placeholder.com/40" alt="Logo" style="display:inline; height:40px; margin-right:450px;">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" style="display:inline; height:30px; margin-right:450px;">
                 FortuneCart
             </a>
         </div>
@@ -33,7 +33,15 @@
     <div class="page-header">
         <h1>My Wishlist</h1>
     </div>
-    
+
+    <div class="row">
+        <div class="col-sm-12">
+            <h4>Set Your Budget:</h4>
+            <input type="number" id="userBudget" class="form-control" placeholder="Enter your budget" onchange="updateBudget()">
+            <h5>Remaining Budget: $<span id="remainingBudget">{{ budget }}</span></h5>
+        </div>
+    </div>
+
     <div class="row" id="wishlist-container">
         <!-- Dynamically loaded cards will be inserted here -->
         <div class="col-sm-3">
@@ -76,6 +84,35 @@
 </div>
 
 <script>
+     function updateBudget() {
+        const budget = parseFloat(document.getElementById('userBudget').value);
+        fetch('/set-budget', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 'budget': budget })
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('remainingBudget').innerText = data.budget;
+        });
+    }
+
+    function markAsBought(itemPrice, buyButton) {
+        fetch('/update-budget', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 'price': itemPrice })
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('remainingBudget').innerText = data.remaining_budget;
+
+            const itemCard = buyButton.closest('.col-sm-3');
+            itemCard.remove();
+        })
+        .catch(error => console.error('Error updating budget:', error));
+    }
+
     // Function to dynamically load saved items from the server
     function loadWishlist() {
         fetch('/get-items')
@@ -89,12 +126,15 @@
                                 <img src="${item.image}" alt="${item.name}" style="width:100%; height:auto;">
                                 <div class="caption">
                                     <p style="text-align:center;">${item.name}</p>
-                                    <p style="text-align:center;">Price: ${item.price}</p>
+                                    <p style="text-align:center;">Price: $${item.price}</p>
+                                    <p style="text-align:center;">Shop: ${item.shop}</p>
                                     <div class="row text-center">
                                         <button class="btn btn-default ml-auto">
                                             <img src="https://banner2.cleanpng.com/20180426/jxq/avez1anz5.webp" alt="Icon" style="width:20px; height:20px; margin-right:5px;">
                                         </button>
                                         <a href="${item.link}" target="_blank" class="btn btn-primary">View Product</a>
+                                        <button type="button" class="btn btn-danger btn-delete">Delete</button>
+
                                     </div>
                                 </div>
                             </div>
@@ -105,6 +145,14 @@
             })
             .catch(error => console.error('Error loading items:', error));
     }
+
+    document.getElementById('wishlist-container').addEventListener('click', function (event) {
+        if (event.target && event.target.classList.contains('btn-delete')) {
+            const cardElement = event.target.closest('.col-sm-3');
+            const link = cardElement.querySelector('a').getAttribute('href');
+            deleteItem(link, cardElement);
+        }
+    });
 
     // Function to submit a new link
     function submitLink() {
@@ -131,20 +179,24 @@
                                 <img src="${data.image}" alt="${data.name}" style="width:100%; height:auto;">
                                 <div class="caption">
                                     <p style="text-align:center;">${data.name}</p>
-                                    <p style="text-align:center;">Price: ${data.price}</p>
+                                    <p style="text-align:center;">Price: $${data.price}</p>
+                                    <p style="text-align:center;">Shop: ${data.shop}</p>
                                     <div class="row text-center">
-                                        <button class="btn btn-default ml-auto">
+                                        <button class="btn btn-default ml-auto" onclick="markAsBought(${data.price.replace('$', '')}, this)">
                                             <img src="https://banner2.cleanpng.com/20180426/jxq/avez1anz5.webp" alt="Icon" style="width:20px; height:20px; margin-right:5px;">
                                         </button>
                                         <a href="${data.itemLink}" target="_blank" class="btn btn-primary">View Product</a>
+                                        <button type="button" class="btn btn-danger btn-delete">Delete</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     `;
                     container.insertAdjacentHTML('beforeend', newCard);
-
                     $('#addModal').modal('hide');
+
+                    const deleteButton = newCard.querySelector('.btn-delete');
+                    deleteButton.addEventListener('click', () => deleteItem(data.itemLink, deleteButton.closest('.col-sm-3')));
                 } else {
                     alert(data.message);
                 }
@@ -153,6 +205,26 @@
         } else {
             alert('Please enter a valid link!');
         }
+    }
+
+    function deleteItem(link, cardElement) {
+        fetch('/delete-item', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ link: link })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                cardElement.remove(); // Remove the card element from the DOM
+                console.log('Item deleted successfully:', link);
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error = console.error('Error deleting item:', error));
     }
 
     // Load wishlist on page load

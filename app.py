@@ -2,11 +2,14 @@ from flask import Flask, render_template, redirect, request, jsonify
 from flask_bootstrap import Bootstrap
 import requests
 from bs4 import BeautifulSoup
+from urllib.parse import urlparse
 
 app = Flask(__name__)
 
 bootstrap=Bootstrap(app)
 item_links = []
+user_budget = 0.0
+bought_items = []
  
 # Landing page
 @app.route('/')
@@ -41,7 +44,21 @@ def login():
             return render_template('login.html')
     else:
         return render_template('login.html')
-    
+
+@app.route('/set-budget', methods=['POST'])
+def set_budget():
+    global user_budget
+    user_budget = float(request.json.get('budget'))
+    return jsonify({"status": "success", "budget": user_budget})
+
+@app.route('/update-budget', methods=['POST'])
+def update_budget():
+    global user_budget
+    item_price = float(request.json.get('price'))
+    bought_items.append(item_price)
+    user_budget -= item_price
+    return jsonify({"status": "success", "remaining_budget": user_budget})
+ 
 @app.route('/get-items', methods=['GET'])
 def get_items():
     return jsonify(item_links)
@@ -91,11 +108,17 @@ def add_item():
                         price_end += 1
                     product_price = source_code[price_start:price_end]
 
+            domain = urlparse(item_link).netloc
+            product_shop = domain.split('.')[1]
+            if product_shop == "shop": product_shop = domain.split('.')[2]
+            if product_shop == "hm": product_shop = "H&M"
+
             item_links.append({
                 "link": item_link,
                 "name": product_name,
                 "image": product_image,
-                "price": product_price
+                "price": product_price,
+                "shop": product_shop.capitalize()
             })
 
             return jsonify({
@@ -103,13 +126,26 @@ def add_item():
                 "itemLink": item_link,
                 "name": product_name,
                 "image": product_image,
-                "price": product_price
+                "price": product_price,
+                "shop": product_shop.capitalize()
             })
         except Exception as e:
             print(f"Error processing link: {e}")
             return jsonify({"status": "error", "message": "Failed to fetch product details"}), 400
     else:
         return jsonify({"status": "error", "message": "No link provided"}), 400
+
+@app.route('/delete-item', methods=['DELETE'])
+def delete_item():
+    global item_links
+    item_link = request.json.get('link')   
+
+    for item in item_links:
+        if item['link'] == item_link:
+            item_links.remove(item)
+            return jsonify({'status': 'success', 'message': 'Product removed'}), 200
+
+    return jsonify({'status': 'error', 'message': 'Failed to remove product'}), 404
 
 if __name__ == '__main__':
     app.run(debug=True)
