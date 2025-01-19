@@ -50,15 +50,28 @@ def add_item():
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
             }
             response = requests.get(item_link, headers=headers)
-            soup = BeautifulSoup(response.text, 'html.parser')
+            source_code = response.text
 
-            product_name = soup.find('meta', property='og:title')['content'] if soup.find('meta', property='og:title') else soup.find('title').text.strip()
-            print(product_name)
+            name_start = source_code.find('"name":"') 
+            product_name = "Unknown Product"
+            if name_start != -1:
+                name_start += len('"name":"')
+                name_end = source_code.find('"', name_start)
+                product_name = source_code[name_start:name_end]
 
-            product_image = soup.find('meta', property='og:image')['content'] if soup.find('meta', property='og:image') else 'https://via.placeholder.com/200'
+            image_start = source_code.find('"image":"')
+            product_image = 'https://via.placeholder.com/200'
+            if image_start != -1:
+                image_start += len('"image":"')
+                image_end = source_code.find('"', image_start)
+                product_image = source_code[image_start:image_end]
 
-            price_tag = soup.select_one('.price, .product-price, [itemprop=price]')
-            product_price = price_tag.text.strip() if price_tag else '$0.00'
+            price_start = source_code.find('"price":"')
+            product_price = '$0.00'
+            if price_start != -1:
+                price_start += len('"price":"')
+                price_end = source_code.find('"', price_start)
+                product_price = source_code[price_start:price_end]
 
             item_links.append({
                 "link": item_link,
@@ -66,6 +79,8 @@ def add_item():
                 "image": product_image,
                 "price": product_price
             })
+
+            print(f"Product Name: {product_name}, Image: {product_image}, Price: {product_price}")
 
             return jsonify({
                 "status": "success",
@@ -79,6 +94,7 @@ def add_item():
             return jsonify({"status": "error", "message": "Failed to fetch product details"}), 400
     else:
         return jsonify({"status": "error", "message": "No link provided"}), 400
+
 
 
 if __name__ == '__main__':
