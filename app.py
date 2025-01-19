@@ -10,6 +10,9 @@ item_links = []
  
 # Landing page
 @app.route('/')
+def index():
+    return render_template('app.html', links=item_links)
+
 # Wishlist page
 @app.route('/mycart')
 def my_shopping_cart():
@@ -39,6 +42,10 @@ def login():
     else:
         return render_template('login.html')
     
+@app.route('/get-items', methods=['GET'])
+def get_items():
+    return jsonify(item_links)
+    
 @app.route('/add-item', methods=['POST'])
 def add_item():
     global item_links
@@ -47,31 +54,42 @@ def add_item():
     if item_link:
         try:
             headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Referer': 'https://www.google.com',
+                'Connection': 'keep-alive'
             }
             response = requests.get(item_link, headers=headers)
+
             source_code = response.text
 
-            name_start = source_code.find('"name":"') 
+            name_start = source_code.find('"name":"')
             product_name = "Unknown Product"
             if name_start != -1:
                 name_start += len('"name":"')
                 name_end = source_code.find('"', name_start)
                 product_name = source_code[name_start:name_end]
 
-            image_start = source_code.find('"image":"')
+            image_start = source_code.find('"image"')
             product_image = 'https://via.placeholder.com/200'
             if image_start != -1:
-                image_start += len('"image":"')
-                image_end = source_code.find('"', image_start)
-                product_image = source_code[image_start:image_end]
+                link_start = source_code.find('https://', image_start)  
+                if link_start != -1:
+                    link_end = source_code.find('"', link_start)
+                    product_image = source_code[link_start:link_end]
 
-            price_start = source_code.find('"price":"')
+            price_start = source_code.find('"price"')
             product_price = '$0.00'
             if price_start != -1:
-                price_start += len('"price":"')
-                price_end = source_code.find('"', price_start)
-                product_price = source_code[price_start:price_end]
+                price_start += len('"price"')
+                while price_start < len(source_code) and not source_code[price_start].isdigit():
+                    price_start += 1
+                if price_start < len(source_code):
+                    price_end = price_start
+                    while price_end < len(source_code) and (source_code[price_end].isdigit() or source_code[price_end] == '.'):
+                        price_end += 1
+                    product_price = source_code[price_start:price_end]
 
             item_links.append({
                 "link": item_link,
@@ -79,8 +97,6 @@ def add_item():
                 "image": product_image,
                 "price": product_price
             })
-
-            print(f"Product Name: {product_name}, Image: {product_image}, Price: {product_price}")
 
             return jsonify({
                 "status": "success",
@@ -94,8 +110,6 @@ def add_item():
             return jsonify({"status": "error", "message": "Failed to fetch product details"}), 400
     else:
         return jsonify({"status": "error", "message": "No link provided"}), 400
-
-
 
 if __name__ == '__main__':
     app.run(debug=True)

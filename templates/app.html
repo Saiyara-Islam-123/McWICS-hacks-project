@@ -34,32 +34,17 @@
         <h1>My Wishlist</h1>
     </div>
     
-    <div class="row">
-      <div class="col-sm-3">
-        <div class="thumbnail text-center" style="padding:20px;">
-            <a href="#" data-toggle="modal" data-target="#addModal">
-              <button type="button" class="btn btn-primary">Add</button>
-            </a>
+    <div class="row" id="wishlist-container">
+        <!-- Dynamically loaded cards will be inserted here -->
+        <div class="col-sm-3">
+            <div class="thumbnail text-center" style="padding:20px;">
+                <a href="#" data-toggle="modal" data-target="#addModal">
+                    <button type="button" class="btn btn-primary">Add</button>
+                </a>
+            </div>
         </div>
     </div>
-      {% for link in links %}
-      <div class="col-sm-3">
-          <div class="thumbnail text-center" style="padding:20px;">
-              <img src="${{ link.image }}" alt="Image" style="width:100%; height:auto;">
-              <div class="caption">
-                  <p style="text-align:center;">{{ link.name }}</p>
-                  <p style="text-align:center;">Price: ${{ link.price }}</p>
-                  <div class="row text-center">
-                      <button class="btn btn-default ml-auto">
-                          <img src="https://banner2.cleanpng.com/20180426/jxq/avez1anz5.webp" alt="Icon" style="width:20px; height:20px; margin-right:5px;">
-                      </button>
-                      <a href="${data.itemLink}" target="_blank" class="btn btn-primary">View Product</a>
-                  </div>
-              </div>
-          </div>
-      </div>
-      {% endfor %}
-  </div>  
+
     <div style="position: fixed; bottom: 20px; right: 20px;">
         <a href="https://example.com" target="_blank">
             <img src="https://cdn-icons-png.flaticon.com/512/263/263142.png" alt="Icon" style="width:50px; height:50px;">
@@ -68,76 +53,110 @@
 </div>
 
 <div id="addModal" class="modal fade" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document">
-      <div class="modal-content">
-          <div class="modal-header">
-              <h5 class="modal-title" style="text-align:center;">Add Items</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-              </button>
-          </div>
-          <div class="modal-body">
-              <div class="form-group">
-                  <label for="itemLink">Enter Item Link:</label>
-                  <input type="url" class="form-control" id="itemLink" name="itemLink" placeholder="https://example.com" required>
-              </div>
-          </div>
-          <div class="modal-footer">
-              <button type="button" class="btn btn-primary" onclick="submitLink()">Submit</button>
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          </div>
-      </div>
-  </div>
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" style="text-align:center;">Add Items</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="itemLink">Enter Item Link:</label>
+                    <input type="url" class="form-control" id="itemLink" name="itemLink" placeholder="https://example.com" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="submitLink()">Submit</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
-  function submitLink() {
-      const linkInput = document.getElementById('itemLink').value; 
-      if (linkInput) {
-          console.log('User entered link:', linkInput); 
-          
-          fetch('/add-item', {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ link: linkInput })
-          })
-          .then(response => response.json())
-          .then(data => {
-              if (data.status === "success") {
-                  console.log('Response from server:', data);
-                  
-                  const row = document.querySelector('.row'); 
-                  const newCard = `
-                      <div class="col-sm-3">
-                          <div class="thumbnail text-center" style="padding:20px;">
-                              <img src="${data.image}" alt="${data.name}" style="width:100%; height:auto;">
-                              <div class="caption">
-                                  <p style="text-align:center;">Price: ${data.price}</p>
-                                  <p style="text-align:center;">${data.name}</p>
-                                  <div class="row text-center">
-                                      <button class="btn btn-default ml-auto">
-                                          <img src="https://banner2.cleanpng.com/20180426/jxq/avez1anz5.webp" alt="Icon" style="width:20px; height:20px; margin-right:5px;">
-                                      </button>
-                                      <a href="${data.itemLink}" target="_blank" class="btn btn-primary">View Product</a>
-                                  </div>
-                              </div>
-                          </div>
-                      </div>
-                  `;
-                  row.insertAdjacentHTML('beforeend', newCard);
+    // Function to dynamically load saved items from the server
+    function loadWishlist() {
+        fetch('/get-items')
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('wishlist-container');
+                data.forEach(item => {
+                    const newCard = `
+                        <div class="col-sm-3">
+                            <div class="thumbnail text-center" style="padding:20px;">
+                                <img src="${item.image}" alt="${item.name}" style="width:100%; height:auto;">
+                                <div class="caption">
+                                    <p style="text-align:center;">${item.name}</p>
+                                    <p style="text-align:center;">Price: ${item.price}</p>
+                                    <div class="row text-center">
+                                        <button class="btn btn-default ml-auto">
+                                            <img src="https://banner2.cleanpng.com/20180426/jxq/avez1anz5.webp" alt="Icon" style="width:20px; height:20px; margin-right:5px;">
+                                        </button>
+                                        <a href="${item.link}" target="_blank" class="btn btn-primary">View Product</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('beforeend', newCard);
+                });
+            })
+            .catch(error => console.error('Error loading items:', error));
+    }
 
-                  $('#addModal').modal('hide');
-              } else {
-                  alert(data.message);
-              }
-          })
-          .catch(error => console.error('Error submitting link:', error));
-      } else {
-          alert('Please enter a valid link!');
-      }
-  }
+    // Function to submit a new link
+    function submitLink() {
+        const linkInput = document.getElementById('itemLink').value;
+        if (linkInput) {
+            console.log('User entered link:', linkInput); 
+            
+            fetch('/add-item', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ link: linkInput })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    console.log('Response from server:', data);
+
+                    const container = document.getElementById('wishlist-container');
+                    const newCard = `
+                        <div class="col-sm-3">
+                            <div class="thumbnail text-center" style="padding:20px;">
+                                <img src="${data.image}" alt="${data.name}" style="width:100%; height:auto;">
+                                <div class="caption">
+                                    <p style="text-align:center;">${data.name}</p>
+                                    <p style="text-align:center;">Price: ${data.price}</p>
+                                    <div class="row text-center">
+                                        <button class="btn btn-default ml-auto">
+                                            <img src="https://banner2.cleanpng.com/20180426/jxq/avez1anz5.webp" alt="Icon" style="width:20px; height:20px; margin-right:5px;">
+                                        </button>
+                                        <a href="${data.itemLink}" target="_blank" class="btn btn-primary">View Product</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('beforeend', newCard);
+
+                    $('#addModal').modal('hide');
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => console.error('Error submitting link:', error));
+        } else {
+            alert('Please enter a valid link!');
+        }
+    }
+
+    // Load wishlist on page load
+    document.addEventListener('DOMContentLoaded', loadWishlist);
 </script>
 
 {% endblock %}
