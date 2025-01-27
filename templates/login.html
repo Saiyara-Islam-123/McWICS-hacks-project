@@ -2,14 +2,46 @@
 
 {% block title %}FortuneCart{% endblock %}
 
-{% block navbar %}
-<div class="Login-form">
-    <form class="form-group" action="/login" method="post">
-        <input type="text" class="form-control" placeholder="username" name='username'>
-        <input type="text" class="form-control" placeholder="password" name='password'>
-        <button type="submit" class="btn btn-primary" name='login'>Login</button>
-        <p> Not registered? </p>
-        <button type="submit" class="btn btn-primary"  name='create_user'>Create user</button>
-    </form>
-</div>
+{% block content %}
+<body class="bg-primary">
+    <div class="container-fluid h-100">
+        <div class="row h-100">
+            <div class="col-12">
+                <div class="bg" style="background-image: url('../static/background.png');
+                                        background-size: cover; 
+                                        background-position: center; 
+                                        height: 100vh;">
+                    <div class="container" style="display: flex;
+                                                align-items: center;
+                                                justify-content: center;">
+                        <div class="card border text-center text-bg-light m-3" style="width: 45rem; margin-top: 10%">
+                            <div class="card-body" style="background-color:white; 
+                                                          padding: 25px; 
+                                                          border-radius: 10px; 
+                                                          border-color: black;">
+                                <img src="../static/logo_login.png" height="150px" style="margin-top: 30px; 
+                                                                                    margin-bottom: 20px;"> 
+                                <form class="form-group" action="/login" method="post">
+                                    <input type="text" class="form-control mb-3" placeholder="username" name='username' style="margin-bottom: 20px;">
+                                    <input type="password" class="form-control mb-3" placeholder="password" name='password' style="margin-bottom: 20px;">
+                                    <button type="submit" class="btn btn-primary form-control mb-3" name='login' style="margin-bottom: 20px; 
+                                                                                                                        background-color: rgb(129, 190, 192); 
+                                                                                                                        border-color: cadetblue;">
+                                        Login
+                                    </button>
+                                    <p class="card-text" style="color: black; padding-bottom: 15px;"> Not registered? </p>
+                                    <button type="submit" class="btn btn-primary form-control" name='create_user' style="background-color: rgb(234, 182, 191); 
+                                                                                                                        border-color: rgb(224, 156, 156);">
+                                        Create user
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
 {% endblock %}

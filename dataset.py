@@ -22,8 +22,8 @@ def decode_date(c):
     date = encoder.code_to_date[c]
     return date
 
-X_train = df["store id"].to_numpy().reshape(34, 1)
-y_train = df["sale_date"].apply(format).apply(encode_date).to_numpy().reshape(34, 1)
+X_train = df["store id"].to_numpy().reshape(84, 1)
+y_train = df["sale_date"].apply(format).apply(encode_date).to_numpy().reshape(84, 1)
 
 model = naive_bayes.NaiveBayes(X_train, y_train)
 

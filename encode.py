@@ -1,6 +1,6 @@
 import datetime
 
-dict_store = {"Zara" : 1, "Lululemon" : 2, "H&M" : 3}
+dict_store = {"Zara" : 1, "Lululemon" : 2, "Hm" : 3, "Clubmonaco": 4, "Thereformation": 5, "Burberry": 6, "Nike": 7, "Maccosmetics": 8}
 
 def encode_store(store):
     return dict_store[store]

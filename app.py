@@ -1,17 +1,24 @@
 from flask import Flask, render_template, redirect, request, jsonify
 from flask_bootstrap import Bootstrap
 import requests
-from bs4 import BeautifulSoup
+from urllib.parse import urlparse
+from datetime import datetime
+from dataset import get_pred_and_prob
+import time
+import random
+time.sleep(random.uniform(1, 3))
 
 app = Flask(__name__)
 
 bootstrap=Bootstrap(app)
 item_links = []
+user_budget = 0.0
+bought_items = []
  
 # Landing page
 @app.route('/')
 def index():
-    return render_template('app.html', links=item_links)
+    return render_template('login.html', links=item_links)
 
 # Wishlist page
 @app.route('/mycart')
@@ -19,7 +26,7 @@ def my_shopping_cart():
     return render_template('app.html', links=item_links)  
     
 # creating a database to store login credentials for users
-login_databasee = {'admin' : 'password'}
+login_databasee = {'admin' : 'password', 'demo' : '123'}
 
 # Creating a function to allow users to login from the login page
 @app.route('/login', methods=['POST', 'GET'])
@@ -34,17 +41,38 @@ def login():
             return render_template('login.html')
     # new user creating account and logging in
     elif 'create_user' in request.form:
-        if usr_name not in login_databasee:
+        if usr_name not in login_databasee and len(usr_name) > 0 and len(usr_pwd) > 0:
             login_databasee[usr_name] = usr_pwd
             return render_template('app.html')
         else:
             return render_template('login.html')
     else:
         return render_template('login.html')
-    
+
+# Functions to manage budget    
+@app.route('/set-budget', methods=['POST'])
+def set_budget():
+    global user_budget
+    user_budget = float(request.json.get('budget'))
+    return jsonify({"status": "success", "budget": user_budget})
+
+@app.route('/update-budget', methods=['POST'])
+def update_budget():
+    global user_budget
+    item_price = float(request.json.get('price'))
+    bought_items.append(item_price)
+    user_budget -= item_price
+    return jsonify({"status": "success", "remaining_budget": user_budget})
+
+# 
 @app.route('/get-items', methods=['GET'])
 def get_items():
     return jsonify(item_links)
+
+#creating a function to redirect users who log out back to the login page
+@app.route('/logout')
+def logout():
+    return render_template('login.html')
     
 @app.route('/add-item', methods=['POST'])
 def add_item():
@@ -91,11 +119,23 @@ def add_item():
                         price_end += 1
                     product_price = source_code[price_start:price_end]
 
+            domain = urlparse(item_link).netloc
+            product_shop = domain.split('.')[1]
+            if product_shop == "shop": product_shop = domain.split('.')[2]
+
+            current_date = datetime.now()
+            formatted_date = f"{current_date.month}/{current_date.day}"
+            date, prob = get_pred_and_prob(product_shop.capitalize(), formatted_date)
+            prob = prob * 100
+
             item_links.append({
                 "link": item_link,
                 "name": product_name,
                 "image": product_image,
-                "price": product_price
+                "price": product_price,
+                "shop": product_shop.capitalize(),
+                "date": date,
+                "prob": round(prob)
             })
 
             return jsonify({
@@ -103,13 +143,28 @@ def add_item():
                 "itemLink": item_link,
                 "name": product_name,
                 "image": product_image,
-                "price": product_price
+                "price": product_price,
+                "shop": product_shop.capitalize(),
+                "date": date,
+                "prob": round(prob)
             })
         except Exception as e:
             print(f"Error processing link: {e}")
             return jsonify({"status": "error", "message": "Failed to fetch product details"}), 400
     else:
         return jsonify({"status": "error", "message": "No link provided"}), 400
+    
+@app.route('/delete-item', methods=['DELETE'])
+def delete_item():
+    global item_links
+    item_link = request.json.get('link')   
+
+    for item in item_links:
+        if item['link'] == item_link:
+            item_links.remove(item)
+            return jsonify({'status': 'success', 'message': 'Product removed'}), 200
+
+    return jsonify({'status': 'error', 'message': 'Failed to remove product'}), 404
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -3,24 +3,26 @@
 {% block title %}FortuneCart{% endblock %}
 
 {% block navbar %}
-<div class="navbar navbar-inverse" role="navigation">
+<div class="navbar navbar-inverse" role="navigation" style="background-color: rgb(239, 239, 239); border-color: rgb(218, 218, 218);">
     <div class="container">
         <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
             <a class="navbar-brand" href="#">
-                <img src="https://via.placeholder.com/40" alt="Logo" style="display:inline; height:40px; margin-right:450px;">
+                <img src="../static/logo.png" alt="Logo" style="display:inline; height:40px; margin-right:450px;">
                 FortuneCart
             </a>
         </div>
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav navbar-right">
                 <li>
-                    <button class="btn btn-danger navbar-btn">Logout</button>
+                    <a href="{{ url_for('logout') }}" class="btn btn-primary form-control" style="background-color: rgb(129, 190, 192); 
+                                                                                    border-color: cadetblue;
+                                                                                    margin: 10px;
+                                                                                    width: 150px;
+                                                                                    color: white;
+                                                                                    text-align: center;
+                                                                                    line-height: 5px;">
+                        Logout
+                    </a>
                 </li>
             </ul>
         </div>
@@ -32,131 +34,207 @@
 <div class="container">
     <div class="page-header">
         <h1>My Wishlist</h1>
+            <a href="#" data-toggle="modal" data-target="#addModal">
+                <button type="button" class="btn btn-primary" style="background-color: rgb(129, 190, 192); border-color: cadetblue;">Add</button>
+            </a>
     </div>
     
-    <div class="row" id="wishlist-container">
-        <!-- Dynamically loaded cards will be inserted here -->
-        <div class="col-sm-3">
-            <div class="thumbnail text-center" style="padding:20px;">
-                <a href="#" data-toggle="modal" data-target="#addModal">
-                    <button type="button" class="btn btn-primary">Add</button>
-                </a>
-            </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <h3>Remaining Budget: $<span id="remainingBudget">{{ budget }}</span></h3>
         </div>
     </div>
 
-    <div style="position: fixed; bottom: 20px; right: 20px;">
-        <a href="https://example.com" target="_blank">
-            <img src="https://cdn-icons-png.flaticon.com/512/263/263142.png" alt="Icon" style="width:50px; height:50px;">
-        </a>
+    <div class="row" id="wishlist-container" style="padding-bottom: 50px;">
+        <!-- Dynamically loaded cards will be inserted here -->
+    </div>
+
+    <div class="row mb-3">
+        <label for="inputBudget" class="col-sm-2 col-form-label">Set Your Budget</label>
+        </div class="col-sm-10">
+            <input type="number" class="form-control" id="userBudget" placeholder="Enter your budget" onchange="updateBudget()" id="inputBudget" style="margin-bottom: 50px;">
+        </div>
     </div>
 </div>
 
 <div id="addModal" class="modal fade" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" style="text-align:center;">Add Items</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
+  <div class="modal-dialog" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" style="text-align:center;">Add Items</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+              </button>
+          </div>
+          <div class="modal-body">
+              <div class="form-group">
+                  <label for="itemLink">Enter Item Link:</label>
+                  <input type="url" class="form-control" id="itemLink" name="itemLink" placeholder="https://example.com" required>
+              </div>
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-primary" onclick="submitLink()" style="background-color: rgb(129, 190, 192); 
+                                                                                    border-color: cadetblue;">
+                    Submit
                 </button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="itemLink">Enter Item Link:</label>
-                    <input type="url" class="form-control" id="itemLink" name="itemLink" placeholder="https://example.com" required>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" onclick="submitLink()">Submit</button>
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+      </div>
+  </div>
 </div>
 
 <script>
-    // Function to dynamically load saved items from the server
-    function loadWishlist() {
-        fetch('/get-items')
-            .then(response => response.json())
-            .then(data => {
-                const container = document.getElementById('wishlist-container');
-                data.forEach(item => {
-                    const newCard = `
-                        <div class="col-sm-3">
-                            <div class="thumbnail text-center" style="padding:20px;">
-                                <img src="${item.image}" alt="${item.name}" style="width:100%; height:auto;">
-                                <div class="caption">
-                                    <p style="text-align:center;">${item.name}</p>
-                                    <p style="text-align:center;">Price: ${item.price}</p>
-                                    <div class="row text-center">
-                                        <button class="btn btn-default ml-auto">
-                                            <img src="https://banner2.cleanpng.com/20180426/jxq/avez1anz5.webp" alt="Icon" style="width:20px; height:20px; margin-right:5px;">
-                                        </button>
-                                        <a href="${item.link}" target="_blank" class="btn btn-primary">View Product</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    container.insertAdjacentHTML('beforeend', newCard);
-                });
-            })
-            .catch(error => console.error('Error loading items:', error));
-    }
+    function updateBudget() {
+       const budget = parseFloat(document.getElementById('userBudget').value);
+       fetch('/set-budget', {
+           method: 'POST',
+           headers: { 'Content-Type': 'application/json' },
+           body: JSON.stringify({ 'budget': budget })
+       })
+       .then(response => response.json())
+       .then(data => {
+           document.getElementById('remainingBudget').innerText = data.budget;
+       });
+   }
 
-    // Function to submit a new link
-    function submitLink() {
-        const linkInput = document.getElementById('itemLink').value;
-        if (linkInput) {
-            console.log('User entered link:', linkInput); 
-            
-            fetch('/add-item', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ link: linkInput })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === "success") {
-                    console.log('Response from server:', data);
+   function markAsBought(itemPrice, buyButton) {
+       fetch('/update-budget', {
+           method: 'POST',
+           headers: { 'Content-Type': 'application/json' },
+           body: JSON.stringify({ 'price': itemPrice })
+       })
+       .then(response => response.json())
+       .then(data => {
+           document.getElementById('remainingBudget').innerText = data.remaining_budget;
 
-                    const container = document.getElementById('wishlist-container');
-                    const newCard = `
-                        <div class="col-sm-3">
-                            <div class="thumbnail text-center" style="padding:20px;">
-                                <img src="${data.image}" alt="${data.name}" style="width:100%; height:auto;">
-                                <div class="caption">
-                                    <p style="text-align:center;">${data.name}</p>
-                                    <p style="text-align:center;">Price: ${data.price}</p>
-                                    <div class="row text-center">
-                                        <button class="btn btn-default ml-auto">
-                                            <img src="https://banner2.cleanpng.com/20180426/jxq/avez1anz5.webp" alt="Icon" style="width:20px; height:20px; margin-right:5px;">
-                                        </button>
-                                        <a href="${data.itemLink}" target="_blank" class="btn btn-primary">View Product</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    container.insertAdjacentHTML('beforeend', newCard);
+           const itemCard = buyButton.closest('.col-sm-3');
+           itemCard.remove();
+       })
+       .catch(error => console.error('Error updating budget:', error));
+   }
 
-                    $('#addModal').modal('hide');
-                } else {
-                    alert(data.message);
-                }
-            })
-            .catch(error => console.error('Error submitting link:', error));
-        } else {
-            alert('Please enter a valid link!');
-        }
-    }
+   // Function to dynamically load saved items from the server
+   function loadWishlist() {
+       fetch('/get-items')
+           .then(response => response.json())
+           .then(data => {
+               const container = document.getElementById('wishlist-container');
+               data.forEach(item => {
+                   const newCard = `
+                       <div class="col-sm-3">
+                           <div class="thumbnail text-center" style="padding:20px;">
+                               <p style="test-align:center;">${item.prob}% chance of sale on ${item.date}</p>
+                               <img src="${item.image}" alt="${item.name}" style="width:100%; height:auto;">
+                               <div class="caption">
+                                   <p style="text-align:center;">${item.name}</p>
+                                   <p style="text-align:center;">$${item.price}</p>
+                                   <p style="text-align:center;">Shop: ${item.shop}</p>
+                                   <div class="row text-center">
+                                       <button class="btn btn-default ml-auto">
+                                           <img src="https://banner2.cleanpng.com/20180426/jxq/avez1anz5.webp" alt="Icon" style="width:20px; height:20px; margin-right:5px;">
+                                       </button>
+                                       <a href="${item.link}" target="_blank" class="btn btn-primary" style="background-color: rgb(129, 190, 192); 
+                                                                                    border-color: cadetblue;">View Product</a>
+                                       <button type="button" class="btn btn-danger btn-delete" style="background-color: rgb(234, 182, 191); 
+                                                                                                    border-color: rgb(224, 156, 156);">X</button>
 
-    // Load wishlist on page load
-    document.addEventListener('DOMContentLoaded', loadWishlist);
+                                   </div>
+                               </div>
+                           </div>
+                       </div>
+                   `;
+                   container.insertAdjacentHTML('beforeend', newCard);
+               });
+           })
+           .catch(error => console.error('Error loading items:', error));
+   }
+
+   document.getElementById('wishlist-container').addEventListener('click', function (event) {
+       if (event.target && event.target.classList.contains('btn-delete')) {
+           const cardElement = event.target.closest('.col-sm-3');
+           const link = cardElement.querySelector('a').getAttribute('href');
+           deleteItem(link, cardElement);
+       }
+   });
+
+   // Function to submit a new link
+   function submitLink() {
+       const linkInput = document.getElementById('itemLink').value;
+       if (linkInput) {
+           console.log('User entered link:', linkInput); 
+           
+           fetch('/add-item', {
+               method: 'POST',
+               headers: {
+                   'Content-Type': 'application/json'
+               },
+               body: JSON.stringify({ link: linkInput })
+           })
+           .then(response => response.json())
+           .then(data => {
+               if (data.status === "success") {
+                   console.log('Response from server:', data);
+
+                   const container = document.getElementById('wishlist-container');
+                   const newCard = `
+                       <div class="col-sm-3">
+                           <div class="thumbnail text-center" style="padding:20px;">
+                               <p style="text-align:center;">${data.prob}% chance of sale on ${data.date}</p>
+                               <img src="${data.image}" alt="${data.name}" style="width:100%; height:auto;">
+                               <div class="caption">
+                                   <p style="text-align:center;">${data.name}</p>
+                                   <p style="text-align:center;">Price: $${data.price}</p>
+                                   <p style="text-align:center;">Shop: ${data.shop}</p>
+                                   <div class="row text-center">
+                                       <button class="btn btn-default ml-auto" onclick="markAsBought(${data.price.replace('$', '')}, this)">
+                                           <img src="https://banner2.cleanpng.com/20180426/jxq/avez1anz5.webp" alt="Icon" style="width:20px; height:20px; margin-right:5px;">
+                                       </button>
+                                       <a href="${data.itemLink}" target="_blank" class="btn btn-primary" style="background-color: rgb(129, 190, 192); 
+                                                                                    border-color: cadetblue;">View Product</a>
+                                       <button type="button" class="btn btn-danger btn-delete" style="background-color: rgb(234, 182, 191); 
+                                                                                                border-color: rgb(224, 156, 156);">X</button>
+                                   </div>
+                               </div>
+                           </div>
+                       </div>
+                   `;
+                   container.insertAdjacentHTML('beforeend', newCard);
+                   $('#addModal').modal('hide');
+
+                   const deleteButton = newCard.querySelector('.btn-delete');
+                   deleteButton.addEventListener('click', () => deleteItem(data.itemLink, deleteButton.closest('.col-sm-3')));
+               } else {
+                   alert(data.message);
+               }
+           })
+           .catch(error => console.error('Error submitting link:', error));
+       } else {
+           alert('Please enter a valid link!');
+       }
+   }
+
+   function deleteItem(link, cardElement) {
+       fetch('/delete-item', {
+               method: 'DELETE',
+               headers: {
+                   'Content-Type': 'application/json'
+               },
+               body: JSON.stringify({ link: link })
+       })
+       .then(response => response.json())
+       .then(data => {
+           if (data.status === 'success') {
+               cardElement.remove(); // Remove the card element from the DOM
+               console.log('Item deleted successfully:', link);
+           } else {
+               alert(data.message);
+           }
+       })
+       .catch(error = console.error('Error deleting item:', error));
+   }
+
+   // Load wishlist on page load
+   document.addEventListener('DOMContentLoaded', loadWishlist);
 </script>
 
 {% endblock %}

@@ -1,0 +1,77 @@
+{% extends "bootstrap/base.html" %}
+
+{% block title %}Search Products{% endblock %}
+
+{% block navbar %}
+<div class="navbar navbar-inverse" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="/">FortuneCart</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header text-center">
+        <h1>Search Products</h1>
+    </div>
+
+    <!-- Search bar -->
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <input type="text" id="searchQuery" class="form-control" placeholder="Enter product name..." />
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-primary" onclick="searchProducts()">Search</button>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div class="row mt-4" id="results-container">
+        <!-- Dynamic results will be inserted here -->
+    </div>
+</div>
+
+<script>
+    function searchProducts() {
+        const query = document.getElementById('searchQuery').value;
+        if (!query) {
+            alert('Please enter a product name.');
+            return;
+        }
+
+        fetch('/search', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ query: query })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "success") {
+                const container = document.getElementById('results-container');
+                container.innerHTML = ''; // Clear previous results
+
+                data.results.forEach(item => {
+                    const newCard = `
+                        <div class="col-sm-3">
+                            <div class="thumbnail text-center" style="padding:20px;">
+                                <h5>${item.name}</h5>
+                                <p>Price: ${item.price}</p>
+                                <a href="${item.link}" target="_blank" class="btn btn-primary">View Product</a>
+                            </div>
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('beforeend', newCard);
+                });
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => console.error('Error fetching search results:', error));
+    }
+</script>
+{% endblock %}
